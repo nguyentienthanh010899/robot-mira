@@ -62,6 +62,19 @@ LOCAL_TTS_URL=http://127.0.0.1:3002
 
 Restart backend sau khi sửa môi trường. Ollama GUI yêu cầu macOS mới hơn máy hiện tại; CLI đã kiểm tra chạy được. Tag `:4b` đã chọn MLX và thất bại trên máy; dùng tag GGUF cụ thể.
 
+## Deploy lên Cloudflare Workers
+
+Trong Settings → Build của Worker kết nối Git, đặt:
+
+- Root directory: thư mục gốc repo (`/`).
+- Build command: `npm run build`.
+- Deploy command: `npx wrangler deploy`.
+
+Build tạo `dist/` trước khi deploy assets. Không cần commit `dist/` vào Git.
+Workers Builds không dùng custom build trong `wrangler.jsonc`, vì vậy phải đặt Build command trên dashboard.
+Khi chạy local, `npm run deploy` hoặc `npm run cf:check` tự build qua cấu hình Wrangler.
+Bản Worker dùng binding Workers AI, không cần key Gemini/Groq hay Ollama/VieNeu local.
+
 ## Kiểm tra / đo
 
 ```sh

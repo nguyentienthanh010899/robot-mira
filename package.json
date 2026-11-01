@@ -16,11 +16,11 @@
     "brain:benchmark": "tsx --env-file-if-exists=.env scripts/benchmark.ts",
     "dev:voice": "concurrently -k -n api,web,voice \"npm:dev:server\" \"npm:dev:web\" \"npm:speech:serve\"",
     "dev:local": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
-    "dev:cloudflare": "npm run build && wrangler dev --ip 127.0.0.1",
+    "dev:cloudflare": "wrangler dev --ip 127.0.0.1",
     "cf:types": "wrangler types --env-interface CloudflareEnv worker/env.d.ts",
-    "cf:check": "npm run build && wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "cf:check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "cf:whoami": "wrangler whoami",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "react": "^19.1.0",

@@ -1,0 +1,45 @@
+{
+  "name": "mira-robot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:server": "tsx watch --env-file-if-exists=.env server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && vite build",
+    "test": "vitest run",
+    "brain:check": "tsx --env-file-if-exists=.env server/check-local.ts",
+    "speech:serve": ".venv-speech/bin/python speech/service.py --offline",
+    "speech:prepare": ".venv-speech/bin/python speech/service.py --prepare",
+    "brain:benchmark": "tsx --env-file-if-exists=.env scripts/benchmark.ts",
+    "dev:voice": "concurrently -k -n api,web,voice \"npm:dev:server\" \"npm:dev:web\" \"npm:speech:serve\"",
+    "dev:local": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:cloudflare": "npm run build && wrangler dev --ip 127.0.0.1",
+    "cf:types": "wrangler types --env-interface CloudflareEnv worker/env.d.ts",
+    "cf:check": "npm run build && wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "cf:whoami": "wrangler whoami",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261101.1",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^9.1.0",
+    "jsdom": "^26.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "~5.8.3",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.156.0"
+  }
+}

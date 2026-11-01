@@ -18,7 +18,7 @@ const responseSchema = {
   },
 };
 export interface AIProvider { chat(messages: Message[], signal: AbortSignal, settings?: Partial<ReplySettings>, onText?: (text: string) => void): Promise<Reply> }
-export function providers(env = process.env): ProviderOption[] {
+export function providers(env: Record<string, string | undefined> = process.env): ProviderOption[] {
   return [
     { id: 'demo', name: 'Demo', ready: true, model: 'Phản hồi mẫu', hint: 'Không cần key · không phải AI thật' },
     { id: 'gemini', name: 'Gemini', ready: !!(env.ALLOW_CLOUD_AI === 'true' && env.GEMINI_API_KEY && env.GEMINI_MODEL), model: env.GEMINI_MODEL || '', hint: 'Cloud tùy chọn: cần ALLOW_CLOUD_AI=true, key và model' },
@@ -26,7 +26,7 @@ export function providers(env = process.env): ProviderOption[] {
     { id: 'ollama', name: 'Ollama', ready: !!env.OLLAMA_MODEL, model: env.OLLAMA_MODEL || '', hint: 'Cần Ollama đang chạy và OLLAMA_MODEL đã tải' },
   ];
 }
-export function createProvider(id: Exclude<ProviderId, 'demo' | 'cloudflare'>, env = process.env): AIProvider {
+export function createProvider(id: Exclude<ProviderId, 'demo' | 'cloudflare'>, env: Record<string, string | undefined> = process.env): AIProvider {
   const selected = providers(env).find(p => p.id === id);
   if (!selected?.ready) throw new ProviderError(503, 'AI chưa được cấu hình. Hãy cập nhật .env phía server và khởi động lại.');
   const config = selected!;
@@ -66,7 +66,14 @@ export function createProvider(id: Exclude<ProviderId, 'demo' | 'cloudflare'>, e
       if ([401, 403].includes(response.status)) throw new ProviderError(502, 'AI từ chối xác thực. Kiểm tra key và quyền model phía server.');
       throw new ProviderError(502, 'AI chưa thể trả lời. Kiểm tra model và trạng thái dịch vụ.');
     }
-    let data; let firstTextMs: number | undefined;
+    type ProviderResponse = {
+      candidates?: { content?: { parts?: { thought?: boolean; text?: string }[] } }[];
+      choices?: { message?: { content?: unknown } }[];
+      message?: { content?: unknown };
+      eval_duration?: number;
+      eval_count?: number;
+    };
+    let data: ProviderResponse | undefined; let firstTextMs: number | undefined;
     if (id === 'ollama' && onText) {
       let raw = '', lastText = '', finished = false;
       await readNDJSON(response, signal, chunk => {
@@ -78,7 +85,7 @@ export function createProvider(id: Exclude<ProviderId, 'demo' | 'cloudflare'>, e
       });
       if (!finished) throw new ProviderError(502, 'AI ngắt trước khi hoàn thành. Hãy thử lại.');
     } else {
-      try { data = await response.json(); } catch { throw new ProviderError(502, 'AI trả dữ liệu không hợp lệ.'); }
+      try { data = await response.json() as ProviderResponse; } catch { throw new ProviderError(502, 'AI trả dữ liệu không hợp lệ.'); }
     }
     if (!data || typeof data !== 'object') throw new ProviderError(502, 'AI trả dữ liệu không hợp lệ.');
     const raw = id === 'gemini' ? data.candidates?.[0]?.content?.parts?.filter((p: { thought?: boolean }) => !p.thought).map((p: { text?: string }) => p.text || '').join('') : id === 'groq' ? data.choices?.[0]?.message?.content : data.message?.content;
@@ -93,7 +100,7 @@ export function createProvider(id: Exclude<ProviderId, 'demo' | 'cloudflare'>, e
       throw new ProviderError(502, 'AI chưa giữ đúng xưng hô đại ca/đệ. Câu trả lời đã được chặn để tránh đọc sai vai. Hãy thử lại hoặc chọn chế độ Chất lượng.');
     }
     onText?.(reply.text);
-    return { ...reply, metrics: { totalMs: Math.round(performance.now() - started), ...(firstTextMs !== undefined ? { firstTextMs } : {}), ...(id === 'ollama' && Number.isFinite(data.eval_duration) && data.eval_duration > 0 ? { generationMs: Math.round(data.eval_duration / 1e6), tokens: data.eval_count } : {}) } };
+    return { ...reply, metrics: { totalMs: Math.round(performance.now() - started), ...(firstTextMs !== undefined ? { firstTextMs } : {}), ...(id === 'ollama' && typeof data.eval_duration === 'number' && Number.isFinite(data.eval_duration) && data.eval_duration > 0 ? { generationMs: Math.round(data.eval_duration / 1e6), tokens: data.eval_count } : {}) } };
   }
   return { chat };
 }

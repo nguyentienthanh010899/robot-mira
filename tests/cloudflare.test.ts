@@ -5,7 +5,7 @@ function environment() {
   const run = vi.fn().mockResolvedValue({ choices: [{ message: { content: 'Bẩm đại ca, đệ nghe đây.' }, finish_reason: 'stop' }], usage: { completion_tokens: 15 } });
   const assets = vi.fn().mockResolvedValue(new Response('<html>MIRA</html>'));
   const limit = vi.fn().mockResolvedValue({ success: true });
-  const env = { AI_MODEL: cloudflareModel, AI: { run } as CloudflareEnv['AI'], ASSETS: { fetch: assets } as CloudflareEnv['ASSETS'], CHAT_LIMITER: { limit } } satisfies CloudflareEnv;
+  const env = { AI_MODEL: cloudflareModel, AI: { run } as unknown as CloudflareEnv['AI'], ASSETS: { fetch: assets } as unknown as CloudflareEnv['ASSETS'], CHAT_LIMITER: { limit } } satisfies CloudflareEnv;
   return { env, run, assets, limit };
 }
 function post(body: unknown, path = '/api/chat/stream', headers = {}) {

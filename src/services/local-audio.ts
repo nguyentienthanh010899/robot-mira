@@ -37,7 +37,7 @@ export function createLocalAudioPlayer(callbacks: { start(): void; pause?(): voi
       if (cancelled || signal.aborted) return;
       done = false;
       const response = await fetch('/api/speech/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: segment, voice }), signal });
-      if (!response.ok) { const data = await response.json(); throw new Error(data.error || 'Không phát được giọng local.'); }
+      if (!response.ok) { const data = await response.json() as { error?: unknown }; throw new Error(typeof data.error === 'string' ? data.error : 'Không phát được giọng local.'); }
       await readNDJSON(response, signal, event => {
         if (cancelled) return;
         if (event.type === 'error') throw new Error(event.error || 'Giọng nói bị gián đoạn.');

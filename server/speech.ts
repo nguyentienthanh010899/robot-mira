@@ -9,7 +9,7 @@ export async function speechInfo(signal: AbortSignal) {
   try {
     const response = await fetch(`${base()}/voices`, { signal: AbortSignal.any([signal, AbortSignal.timeout(2000)]), redirect: 'error' });
     if (!response.ok) throw new Error('not ready');
-    const data = await response.json();
+    const data = await response.json() as { voices?: unknown };
     if (!Array.isArray(data.voices)) throw new Error('invalid');
     return { ready: true, engine: 'VieNeu local', voices: data.voices.filter((v: unknown) => typeof v === 'string').slice(0, 100) };
   } catch { return { ready: false, engine: 'VieNeu local', voices: [], message: 'Chạy npm run speech:serve để mở giọng Việt local.' }; }

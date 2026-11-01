@@ -71,7 +71,7 @@ Trong Settings → Build của Worker kết nối Git, đặt:
 - Deploy command: `npx wrangler deploy`.
 
 Build tạo `dist/` trước khi deploy assets. Không cần commit `dist/` vào Git.
-Workers Builds không dùng custom build trong `wrangler.jsonc`, vì vậy phải đặt Build command trên dashboard.
+Giữ Build command rõ ràng trên dashboard để tạo assets trước bước deploy. Wrangler cũng có custom build trong `wrangler.jsonc` (log có thể hiển thị `[custom build]`).
 Khi chạy local, `npm run deploy` hoặc `npm run cf:check` tự build qua cấu hình Wrangler.
 Bản Worker dùng binding Workers AI, không cần key Gemini/Groq hay Ollama/VieNeu local.
 
